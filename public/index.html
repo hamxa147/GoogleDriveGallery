@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Google Drive Gallery</title>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+    <h2 style="text-align: center">Google Drive Gallery</h2>
+
+    <div style="text-align: center">
+      <button id="authorize_button" onclick="handleAuthClick()">
+        Authorize
+      </button>
+      <button id="signout_button" onclick="handleSignoutClick()">
+        Sign Out
+      </button>
+
+      <script>
+        // Example data from the server
+        var data = {
+            user: {
+                name: '<%= data.user.name %>',
+                // isAdmin: <%= data.user.isAdmin %>
+            }
+        };
+
+        // Conditionally show buttons based on data
+        if (data.user.isAdmin) {
+            var button = document.createElement('button');
+            button.textContent = 'Admin Button';
+            document.body.appendChild(button);
+        }
+      </script>
+    </div>
+
+    <pre id="content" style="white-space: pre-wrap"></pre>
+  </body>
+</html>

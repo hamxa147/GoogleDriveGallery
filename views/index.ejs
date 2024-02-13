@@ -1,0 +1,27 @@
+<!-- views/index.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google Drive Gallery</title>
+  </head>
+  <body>
+    <div style="text-align: center">
+      <h1><%= data.title %></h1>
+      <% if (data.isAuthorized) { %>
+      <div>
+        <!-- This div will be added if the condition is true -->
+        <p>
+          You are already authorized. You can view your pictures here =>
+          <a href="<%= data.url %>">Files</a>
+        </p>
+      </div>
+      <% } else { %>
+      <!-- You can add alternative content here if the condition is false -->
+      <p>You are not authorized. You can login here => <a href="<%= data.url %>">Login</a></p>
+      <% } %>
+    </div>
+  </body>
+</html>
