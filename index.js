@@ -47,9 +47,7 @@ async function authorize() {
       await saveCredentials(client);
     }
     return client;
-  } catch (error) {
-    console.log("rekjrelkarlkeanfjlkewnflke", error);
-  }
+  } catch (error) {}
 }
 
 async function listFolders(authClient) {
@@ -64,22 +62,21 @@ async function listFolders(authClient) {
     return "No folders found.";
   }
 
-  return folders
+  return folders;
 }
 
-async function listFiles(authClient) {
+async function listFiles(authClient, fileId) {
   const drive = google.drive({ version: "v3", auth: authClient });
   const res = await drive.files.list({
     // pageSize: 10,
     fields: "nextPageToken, files(id, name)",
-    q: "mimeType contains 'image/'",
+    // q: "mimeType contains 'image/'",
+    q: `'${fileId}' in parents and mimeType contains 'image/'`,
   });
   const files = res.data.files;
   if (files.length === 0) {
-    return "No files found.";
+    return [];
   }
-
-  console.log("filesfiles", files);
 
   return files;
 }
@@ -119,17 +116,17 @@ app.get("/auth", async (req, res, next) => {
       res.status(200).redirect("/files");
     }
   } catch (error) {
-    console.log("sdalkndlkasnda", error);
     res.status(401).send("Authentication Required");
   }
 });
 
 // List files route
-app.get("/files", async (req, res, next) => {
+app.get("/files/:id", async (req, res, next) => {
   try {
+    const fileId = req.params.id;
     const client = await authorize();
-    const fileList = await listFiles(client);
-    console.log("fileList", fileList);
+    const fileList = await listFiles(client, fileId);
+
     res.render("files", { files: fileList });
   } catch (error) {
     res.status(401).send("Authentication Required");
@@ -144,7 +141,6 @@ app.get("/folders", async (req, res, next) => {
     console.log("fileList", folderList);
     res.render("folder", { files: folderList });
   } catch (error) {
-    console.log("dlahdlshlkdkas", error);
     res.status(401).send("Authentication Required");
   }
 });
