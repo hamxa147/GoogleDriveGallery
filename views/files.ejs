@@ -1,57 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Google Drive Gallery</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f1f1f1;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .image-gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            grid-gap: 10px;
-            justify-items: center;
-        }
-        .image-gallery img {
-            width: 200px; /* Set the width of the image */
-            height: 200px; /* Set the height of the image */
-            object-fit: cover; /* Maintain aspect ratio and cover the container */
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .no-images {
-            text-align: center;
-            font-style: italic;
-            color: #888;
-        }
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f1f1f1;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .image-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-gap: 10px;
+        justify-items: center;
+      }
+      .image-gallery img {
+        width: 200px; /* Set the width of the image */
+        height: 200px; /* Set the height of the image */
+        object-fit: cover; /* Maintain aspect ratio and cover the container */
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .no-images {
+        text-align: center;
+        font-style: italic;
+        color: #888;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <h1>Image Gallery</h1>
-        <% if (files.length === 0) { %>
-            <p class="no-images">No images found.</p>
-        <% } else { %>
-            <div class="image-gallery">
-                <% files.forEach(function(file) { %>
-                    <img src="<%= 'https://lh3.googleusercontent.com/d/' + file.id %>" alt="<%= file.name %>">
-                <% }); %>
-            </div>
-        <% } %>
+      <h1>Image Gallery</h1>
+      <% if (files.length === 0) { %>
+      <p class="no-images">No images found.</p>
+      <% } else { %>
+      <div class="image-gallery">
+        <% files.forEach(function(file) { %>
+        <img
+          src="<%=file.thumbnailLink %>"
+          referrerpolicy="no-referrer"
+          loading="lazy"
+          alt="<%= file.name %>"
+        />
+        <% }); %>
+      </div>
+      <% } %>
     </div>
-</body>
+  </body>
 </html>

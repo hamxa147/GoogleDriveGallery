@@ -3,6 +3,8 @@ const fs = require("fs").promises;
 const path = require("path");
 const { authenticate } = require("@google-cloud/local-auth");
 const { google } = require("googleapis");
+const sharp = require("sharp");
+const axios = require("axios");
 
 const app = express();
 
@@ -53,7 +55,7 @@ async function authorize() {
 async function listFolders(authClient) {
   const drive = google.drive({ version: "v3", auth: authClient });
   const res = await drive.files.list({
-    pageSize: 10,
+    // pageSize: 10,
     fields: "nextPageToken, files(id, name)",
     q: "mimeType='application/vnd.google-apps.folder'",
   });
@@ -67,18 +69,47 @@ async function listFolders(authClient) {
 
 async function listFiles(authClient, fileId) {
   const drive = google.drive({ version: "v3", auth: authClient });
+  // const result = await drive.permissions
+  //   .create({
+  //     fileId: fileId,
+  //     requestBody: {
+  //       role: "reader",
+  //       type: "anyone",
+  //     },
+  //   })
+  //   .then(async () => {});
+
   const res = await drive.files.list({
     // pageSize: 10,
-    fields: "nextPageToken, files(id, name)",
+    fields: "nextPageToken, files(id, name, webViewLink, thumbnailLink)",
     // q: "mimeType contains 'image/'",
     q: `'${fileId}' in parents and mimeType contains 'image/'`,
   });
-  const files = res.data.files;
+  let files = res.data.files;
   if (files.length === 0) {
     return [];
   }
 
-  return files;
+  const resizedFiles = await Promise.all(
+    files.map(async (file) => {
+      const thumbnailUrl = file.thumbnailLink.replace("s220", "s800"); // Change the size as needed
+      const response = await axios.get(thumbnailUrl, {
+        responseType: "arraybuffer",
+      });
+      const resizedImage = await sharp(response.data)
+        .resize({ width: 200, height: 200 }) // Resize to 200x200 pixels
+        .toBuffer();
+      return {
+        id: file.id,
+        name: file.name,
+        webViewLink: file.webViewLink,
+        thumbnailLink: `data:image/jpeg;base64,${resizedImage.toString(
+          "base64"
+        )}`,
+      };
+    })
+  );
+  return resizedFiles;
 }
 
 app.use(express.static(path.join(__dirname, "public")));
@@ -91,17 +122,18 @@ app.get("/", async (req, res, next) => {
 
   // Attempt to authorize
   const client = await authorize();
-
   // If authorization is successful, set isAuthorized to true
-  if (client !== null) {
+  if (client !== null && client !== undefined) {
     isAuthorized = true;
+    res.status(200).redirect("/folders");
+    return
   }
 
   // Construct data object to pass to the template
   const data = {
     title: "Welcome to My Google Drive Gallery",
     isAuthorized: isAuthorized,
-    url: isAuthorized ? "/files" : "/auth",
+    url: isAuthorized ? "/folders" : "/auth",
   };
 
   // Render the "index.ejs" template and pass data to it
@@ -112,8 +144,8 @@ app.get("/", async (req, res, next) => {
 app.get("/auth", async (req, res, next) => {
   try {
     const client = await authorize();
-    if (client !== null) {
-      res.status(200).redirect("/files");
+    if (client !== null && client !== undefined) {
+      res.status(200).redirect("/folders");
     }
   } catch (error) {
     res.status(401).send("Authentication Required");
@@ -138,7 +170,6 @@ app.get("/folders", async (req, res, next) => {
   try {
     const client = await authorize();
     const folderList = await listFolders(client);
-    console.log("fileList", folderList);
     res.render("folder", { files: folderList });
   } catch (error) {
     res.status(401).send("Authentication Required");
