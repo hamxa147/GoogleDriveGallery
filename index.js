@@ -3,8 +3,6 @@ const fs = require("fs").promises;
 const path = require("path");
 const { authenticate } = require("@google-cloud/local-auth");
 const { google } = require("googleapis");
-const sharp = require("sharp");
-const axios = require("axios");
 
 const app = express();
 
@@ -69,15 +67,6 @@ async function listFolders(authClient) {
 
 async function listFiles(authClient, fileId) {
   const drive = google.drive({ version: "v3", auth: authClient });
-  // const result = await drive.permissions
-  //   .create({
-  //     fileId: fileId,
-  //     requestBody: {
-  //       role: "reader",
-  //       type: "anyone",
-  //     },
-  //   })
-  //   .then(async () => {});
 
   const res = await drive.files.list({
     // pageSize: 10,
@@ -90,26 +79,26 @@ async function listFiles(authClient, fileId) {
     return [];
   }
 
-  const resizedFiles = await Promise.all(
-    files.map(async (file) => {
-      const thumbnailUrl = file.thumbnailLink.replace("s220", "s800"); // Change the size as needed
-      const response = await axios.get(thumbnailUrl, {
-        responseType: "arraybuffer",
-      });
-      const resizedImage = await sharp(response.data)
-        .resize({ width: 200, height: 200 }) // Resize to 200x200 pixels
-        .toBuffer();
-      return {
-        id: file.id,
-        name: file.name,
-        webViewLink: file.webViewLink,
-        thumbnailLink: `data:image/jpeg;base64,${resizedImage.toString(
-          "base64"
-        )}`,
-      };
-    })
-  );
-  return resizedFiles;
+  // const resizedFiles = await Promise.all(
+  //   files.map(async (file) => {
+  //     const thumbnailUrl = file.thumbnailLink.replace("s220", "s800"); // Change the size as needed
+  //     const response = await axios.get(thumbnailUrl, {
+  //       responseType: "arraybuffer",
+  //     });
+  //     const resizedImage = await sharp(response.data)
+  //       .resize({ width: 200, height: 200 }) // Resize to 200x200 pixels
+  //       .toBuffer();
+  //     return {
+  //       id: file.id,
+  //       name: file.name,
+  //       webViewLink: file.webViewLink,
+  //       thumbnailLink: `data:image/jpeg;base64,${resizedImage.toString(
+  //         "base64"
+  //       )}`,
+  //     };
+  //   })
+  // );
+  return files;
 }
 
 app.use(express.static(path.join(__dirname, "public")));
